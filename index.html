@@ -244,16 +244,28 @@ const skeletonHtml = `<div class="skeleton">
   <div class="skeleton-row"><div class="skeleton-line short"></div><div class="skeleton-line short"></div></div>
 </div>`;
 
-// Auto-load last searched location
-try {
-  const saved = JSON.parse(localStorage.getItem('lastLocation'));
-  if (saved && saved.latitude != null) selectLocation(saved);
-} catch (e) {}
+// Auto-load from URL params, then localStorage
+const urlParams = new URLSearchParams(location.search);
+if (urlParams.has('lat') && urlParams.has('lon')) {
+  const lat = parseFloat(urlParams.get('lat'));
+  const lon = parseFloat(urlParams.get('lon'));
+  const loc = { latitude: lat, longitude: lon };
+  reverseGeocode(lat, lon).then(info => {
+    if (info.name) loc.name = info.name;
+    if (info.detail) loc.detail = info.detail;
+  }).catch(() => {}).finally(() => selectLocation(loc));
+} else {
+  try {
+    const saved = JSON.parse(localStorage.getItem('lastLocation'));
+    if (saved && saved.latitude != null) selectLocation(saved);
+  } catch (e) {}
+}
 
 function resetPage() {
   input.value = '';
   locDiv.innerHTML = '';
   resultDiv.innerHTML = '';
+  history.replaceState(null, '', location.pathname);
   input.focus();
 }
 
@@ -324,6 +336,17 @@ function normalizeOpenMeteo(data) {
   }));
 }
 
+async function reverseGeocode(lat, lon) {
+  const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`, {
+    headers: { 'Accept': 'application/json' }
+  });
+  const r = await resp.json();
+  const a = r.address || {};
+  const name = a.city || a.town || a.village || a.hamlet || r.display_name?.split(',')[0]?.trim() || '';
+  const detail = [a.state, a.country].filter(Boolean).join(', ');
+  return { name, detail };
+}
+
 async function searchNominatim(query) {
   const resp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&addressdetails=1`, {
     headers: { 'Accept': 'application/json' }
@@ -372,6 +395,7 @@ async function selectLocation(loc) {
   resultDiv.innerHTML = skeletonHtml;
 
   window._lastLoc = loc;
+  history.replaceState(null, '', `?lat=${loc.latitude}&lon=${loc.longitude}`);
   try {
     localStorage.setItem('lastLocation', JSON.stringify({ name: loc.name, detail: loc.detail, latitude: loc.latitude, longitude: loc.longitude }));
   } catch (e) {}
@@ -480,7 +504,7 @@ async function selectLocation(loc) {
           </div>
           <div class="stat-row">
             <span class="stat-label">Drying elapsed</span>
-            <span class="stat-value">${dryHoursPaidOff < 0.5 ? 'None' : '~' + Math.floor(dryHoursPaidOff) + ' hr'}</span>
+            <span class="stat-value">${Math.floor(dryHoursPaidOff) < 1 ? 'None' : '~' + Math.floor(dryHoursPaidOff) + ' hr'}</span>
           </div>
           <div class="stat-row">
             <span class="stat-label">Dry time needed</span>
