@@ -250,11 +250,18 @@ const urlParams = new URLSearchParams(location.search);
 if (urlParams.has('lat') && urlParams.has('lon')) {
   const lat = parseFloat(urlParams.get('lat'));
   const lon = parseFloat(urlParams.get('lon'));
-  const loc = { latitude: lat, longitude: lon };
-  reverseGeocode(lat, lon).then(info => {
-    if (info.name) loc.name = info.name;
-    if (info.detail) loc.detail = info.detail;
-  }).catch(() => {}).finally(() => selectLocation(loc));
+  // Check if localStorage has a matching location with a name (e.g. refresh)
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem('lastLocation')); } catch (e) {}
+  if (saved && saved.name && Math.abs(saved.latitude - lat) < 0.01 && Math.abs(saved.longitude - lon) < 0.01) {
+    selectLocation(saved);
+  } else {
+    const loc = { latitude: lat, longitude: lon };
+    reverseGeocode(lat, lon).then(info => {
+      if (info.name) loc.name = info.name;
+      if (info.detail) loc.detail = info.detail;
+    }).catch(() => {}).finally(() => selectLocation(loc));
+  }
 } else {
   try {
     const saved = JSON.parse(localStorage.getItem('lastLocation'));
@@ -343,7 +350,7 @@ async function reverseGeocode(lat, lon) {
   });
   const r = await resp.json();
   const a = r.address || {};
-  const name = a.city || a.town || a.village || a.hamlet || r.display_name?.split(',')[0]?.trim() || '';
+  const name = a.city || a.town || a.village || a.hamlet || a.county || r.display_name?.split(',')[0]?.trim() || '';
   const detail = [a.state, a.country].filter(Boolean).join(', ');
   return { name, detail };
 }
