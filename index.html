@@ -104,17 +104,6 @@
   .verdict.wait { background: #fce8e8; color: #b91c1c; }
   .verdict.raining { background: #e0ecf7; color: #2a5a8a; }
   .verdict.no-rain { background: #e6f9e6; color: #1a7a1a; }
-  .details-section {
-    margin-top: 1.25rem;
-  }
-  .details-section summary {
-    color: #888;
-    cursor: pointer;
-    text-align: center;
-    list-style: none;
-  }
-  .details-section summary::-webkit-details-marker { display: none; }
-  .details-section[open] summary { margin-bottom: 0.75rem; }
   .stats { display: grid; }
   .stat-row {
     display: flex;
@@ -484,31 +473,28 @@ async function selectLocation(loc) {
         <a id="map-link" href="https://www.google.com/maps/search/?api=1&query=${loc.latitude},${loc.longitude}" target="_blank" rel="noopener" style="display:block;text-decoration:none">
           <div id="map" class="map-tile"></div>
         </a>
-        <details class="details-section">
-          <summary onclick="this.textContent = this.parentElement.open ? 'show details' : 'hide details'">show details</summary>
-          <div class="stats">
-            <div class="stat-row">
-              <span class="stat-label">Total rainfall (72 hrs)</span>
-              <span class="stat-value">${totalInches.toFixed(2)} in (${totalMm.toFixed(1)} mm)</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Drying elapsed</span>
-              <span class="stat-value">${dryHoursPaidOff < 0.5 ? 'None' : '~' + Math.floor(dryHoursPaidOff) + ' hr'}</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Dry time needed</span>
-              <span class="stat-value">${dryDebt < 0.5 ? 'None' : formatHrsMins(dryDebt)}</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Last rain</span>
-              <span class="stat-value">${lastRainTime ? formatAgo(hoursSinceRain) : 'None in 72 hrs'}</span>
-            </div>
+        <div class="stats">
+          <div class="stat-row">
+            <span class="stat-label">Total rainfall (72 hrs)</span>
+            <span class="stat-value">${totalInches.toFixed(2)} in (${totalMm.toFixed(1)} mm)</span>
           </div>
-          <div class="day-breakdown">
-            <h3>Rainfall by Day</h3>
-            ${dayRows || '<div style="color:#888;font-size:0.85rem">No precipitation recorded</div>'}
+          <div class="stat-row">
+            <span class="stat-label">Drying elapsed</span>
+            <span class="stat-value">${dryHoursPaidOff < 0.5 ? 'None' : '~' + Math.floor(dryHoursPaidOff) + ' hr'}</span>
           </div>
-        </details>
+          <div class="stat-row">
+            <span class="stat-label">Dry time needed</span>
+            <span class="stat-value">${dryDebt < 0.5 ? 'None' : formatHrsMins(dryDebt)}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Last rain</span>
+            <span class="stat-value">${lastRainTime ? formatAgo(hoursSinceRain) : 'None in 72 hrs'}</span>
+          </div>
+        </div>
+        <div class="day-breakdown">
+          <h3>Rainfall by Day</h3>
+          ${dayRows || '<div style="color:#888;font-size:0.85rem">No precipitation recorded</div>'}
+        </div>
       </div>
       <div class="search-again"><a href="#" onclick="selectLocation(window._lastLoc); return false;">refresh</a><a href="#" onclick="resetPage(); return false;">search again</a></div>`;
 
