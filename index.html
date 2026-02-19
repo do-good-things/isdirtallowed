@@ -509,7 +509,7 @@ async function selectLocation(loc) {
           </div>
           <div class="stat-row">
             <span class="stat-label">Dry time needed</span>
-            <span class="stat-value">${dryDebt < 0.5 ? 'None' : formatHrsMins(dryDebt)}</span>
+            <span class="stat-value">${isRaining ? 'accumulating...' : (dryDebt < 0.5 ? 'None' : formatHrsMins(dryDebt))}</span>
           </div>
           <div class="stat-row">
             <span class="stat-label">Last rain</span>
